@@ -104,5 +104,9 @@ public class StudentService {
     public List<Student> getStudentsByName(String name) {
         return studentRepository.findByFirstNameIgnoreCaseOrLastNameIgnoreCase(name, name);
     }
+    public List<Student> saveAllStudents(List<Student> students) {
+        return studentRepository.saveAll(students);
+    }
+
 
 }
