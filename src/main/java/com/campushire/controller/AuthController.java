@@ -26,10 +26,12 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
-        User user = authService.login(email, password);
-        if (user == null) {
+
+        Map<String, Object> result = authService.login(email, password);
+        if (result == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(result);
     }
+
 }
