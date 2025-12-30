@@ -62,11 +62,10 @@ public class ApplicationController {
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateApplicationStatus(@PathVariable Long id, @RequestParam String status) {
         Application app = applicationService.updateApplicationStatus(id, status);
-        if (app != null) {
-            return ResponseEntity.ok(app);
-        }
+        if (app != null) return ResponseEntity.ok(app);
         return ResponseEntity.notFound().build();
     }
+
 
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<?> deleteApplication(@PathVariable Long id) {

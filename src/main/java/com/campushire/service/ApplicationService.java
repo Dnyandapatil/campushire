@@ -1,6 +1,8 @@
 package com.campushire.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import com.campushire.entity.Application;
 import com.campushire.entity.Student;
@@ -15,6 +17,10 @@ public class ApplicationService {
     @Autowired
     private ApplicationRepository applicationRepository;
 
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired private JavaMailSender javaMailSender;
     public Application createApplication(Student student, Company company) {
         Application app = new Application(student, company, "Applied");
         app.setAppliedDate(LocalDateTime.now());
@@ -34,15 +40,47 @@ public class ApplicationService {
         return applicationRepository.findByCompany(company);
     }
 
-    public Application updateApplicationStatus(Long applicationId, String status) {
-        Optional<Application> app = applicationRepository.findById(applicationId);
-        if (app.isPresent()) {
-            Application existing = app.get();
-            existing.setStatus(status);
-            return applicationRepository.save(existing);
+    public Application updateApplicationStatus(Long id, String status) {
+        Application app = applicationRepository.findById(id).orElse(null);
+        if (app != null) {
+            String oldStatus = app.getStatus();
+            app.setStatus(status);
+            app = applicationRepository.save(app);
+
+            System.out.println("🔥 STATUS CHANGED: " + id + " [" + oldStatus + " → " + status + "]");
+
+            // Send email for ANY status change using YOUR EmailService
+            sendStatusEmail(app, status);
+
+            return app;
         }
         return null;
     }
+
+    private void sendStatusEmail(Application app, String status) {
+        try {
+            Student student = app.getStudent();
+            Company company = app.getCompany();
+
+            if (student != null && company != null) {
+                System.out.println("🚀 Sending " + status + " email to: " + student.getEmail());
+
+                // USE YOUR EXISTING EmailService method
+                emailService.sendStatusUpdateMail(
+                        student.getEmail(),
+                        student.getFirstName() + " " + student.getLastName(),
+                        company.getName(),
+                        status.toUpperCase()
+                );
+
+                System.out.println("✅ EMAIL SENT SUCCESSFULLY using EmailService!");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ EMAIL FAILED: " + e.getMessage());
+        }
+    }
+
+
 
     public boolean deleteApplication(Long applicationId) {
         if (applicationRepository.existsById(applicationId)) {
